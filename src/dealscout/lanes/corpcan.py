@@ -2,13 +2,18 @@
 
 Discovery: the monthly transactions publication page (stable URL, latest
 month) lists every new CBCA certificate as an HTML table: corp number,
-name, province, effective date. Keyword-matched (climate tokens in the
-corporation name) only — no director lookup. Volume-first per Nathan:
-the director-pedigree track was dropped 2026-07-17 after a full month's
-sweep (~7k corps, ~2h runtime) turned up 0 watchlist matches, while the
-keyword track (unrestricted, no dependency on any founder list) is what
-actually produces volume. This lane needs no API key or secret as a
-result — it's a plain public HTML page.
+name, province, effective date.
+
+Volume-first per Nathan (2026-07-17): every new corp is a candidate,
+not just keyword matches. The only thing excluded is a bare numbered
+corp with no chosen name ("1234567 Canada Inc.") -- those carry zero
+distinguishing information regardless of volume philosophy, nothing
+for the scheduled task to screen or score. matched_token/hydrogen are
+still computed and carried through as scoring signal, they just no
+longer gate inclusion. (The director-pedigree track was dropped the
+same day after a full month's sweep, ~7k corps/~2h runtime, turned up
+0 watchlist matches.) This lane needs no API key or secret -- it's a
+plain public HTML page.
 """
 
 import datetime as dt
@@ -76,22 +81,24 @@ def run() -> list[dict]:
     log.info("corpcan: %s — %d new corporations", label or "(unknown month)", len(corps))
 
     kw = load_keywords()
-    keyword_hits = []
+    candidates = []
     for c in corps:
+        if re.match(r"^\d{7,8} CANADA (INC|LTD|CORP)", c["name"].upper()):
+            continue  # bare numbered corp, no chosen name -- nothing to screen or score
         hit = match_name(c["name"], kw)
-        if hit and not re.match(r"^\d{7,8} CANADA (INC|LTD|CORP)", c["name"].upper()):
-            keyword_hits.append({
-                "company": c["name"],
-                "matched_token": hit,
-                "hydrogen": hit == "hydrogen",
-                "date": c["date"],
-                "jurisdiction": "Federal",
-                "province": c["province"],
-                "source_url": CORP_SEARCH_URL.format(num=c["number"].split("-")[0]),
-                "raw_ref": f"cbca:{c['number']}",
-            })
+        candidates.append({
+            "company": c["name"],
+            "matched_token": hit,          # None if no keyword matched -- still a candidate
+            "hydrogen": hit == "hydrogen",
+            "date": c["date"],
+            "jurisdiction": "Federal",
+            "province": c["province"],
+            "source_url": CORP_SEARCH_URL.format(num=c["number"].split("-")[0]),
+            "raw_ref": f"cbca:{c['number']}",
+        })
 
     st["last_month"] = label
     state.save("corpcan", st)
-    log.info("corpcan: %d keyword hits", len(keyword_hits))
-    return keyword_hits
+    log.info("corpcan: %d candidates (%d keyword-matched)", len(candidates),
+              sum(1 for c in candidates if c["matched_token"]))
+    return candidates

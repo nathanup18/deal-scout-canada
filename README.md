@@ -16,12 +16,16 @@ Known gap, accepted: Ontario's registry is closed — no ON incorporation lane.
 | C — Cohorts | Diff-scrape 9 accelerator pages ([config](config/cohort_pages.yaml)) | `lane-c-cohorts.yml` | `raw/cohorts.json` |
 | A — Grants | Federal G&C CSV filter + ERA/NorthX page diffs + NSERC (experimental) | `lane-a-grants.yml` | `raw/grants.json`, `raw/grant_pages.json`, `raw/nserc.json` |
 | B — New corps (BC) | OrgBook BC keyword search on new registrations | `lane-b-orgbook.yml` | `raw/orgbook.json` |
-| B — New corps (federal) | CBCA monthly transactions table, keyword-matched | `lane-b-federal.yml` | `raw/corpcan.json` |
+| B — New corps (federal) | CBCA monthly transactions table — **every** new incorporation, not keyword-filtered | `lane-b-federal.yml` | `raw/corpcan.json` |
 | D — Regulatory | Phase 2 — build after A–C are producing (GHG offset registry, BC LCFS, CIPO Y02 patents) | not built yet | — |
 
-Both New Corps sources (BC and federal) are keyword-match only — any new incorporation whose name contains a climate-relevant token becomes a signal, regardless of who founded it. The federal lane originally also swept director names against a pedigree watchlist to catch numbered/generic-named corps with a known founder behind them; that track was dropped 2026-07-17 after a full month's sweep (~7k corps, ~2h runtime) turned up 0 matches, while the keyword track — unrestricted, no founder-list dependency — is what actually produces volume. Nathan's priority is maximum volume from these sources, not pedigree-based curation, so this was the right call.
+Volume philosophy (Nathan, 2026-07-17): maximum volume from these sources, not pedigree- or keyword-based pre-curation. The federal incorporation lane passes through every new corporation each month — thousands of rows — except bare numbered corps with no chosen name ("1234567 Canada Inc."), which carry zero distinguishing information regardless of volume goals. The keyword match is still computed and carried through as a scoring signal, it just no longer gates inclusion.
 
-Volume philosophy: no caps, no quality gate beyond the scheduled task's obvious-garbage judgment and the Copper novelty check. Everything real lands in Airtable; scoring only affects digest sort order. Hydrogen-keyword hits are logged but flagged off-thesis and sort to the bottom.
+BC (OrgBook) stays keyword-scoped, not by choice but because its public search API has no way to list new registrations without a text query — every ordering/date-filter parameter was tried and none work, and BC doesn't publish a bulk incorporations feed the way the federal government does. Going keyword-free there would need a different data source (e.g. OpenCorporates' bulk BC dataset, likely paid/licensed) — a separate project, not a quick change.
+
+The federal lane originally also swept director names against a pedigree watchlist to catch numbered/generic-named corps with a known founder behind them; that track was dropped 2026-07-17 (a full month's sweep, ~7k corps/~2h runtime, turned up 0 matches) in favor of just passing everything through.
+
+Airtable holds all of this uncapped. Only the Slack digest to Isabel is capped (top 15 per lane per day, by score) so it stays readable when a big batch lands — that's a readability limit on one Slack message, not a quality gate on what gets logged. Everything not in a given day's top 15 is still written to Airtable, still stamped processed, and stays permanently findable there. Hydrogen-keyword hits are logged but flagged off-thesis and sort to the bottom (and can't occupy a top-15 digest slot).
 
 ## Triggering
 
