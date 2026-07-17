@@ -1,12 +1,12 @@
-# Lane A — provincial funder project pages, diff-scraped weekly (same engine as lane C).
+# Lane A — provincial funder project pages, diff-scraped daily (same engine as lane C).
 pages:
   - org: Emissions Reduction Alberta
     url: https://www.eralberta.ca/projects/
     diff_mode: list
     first_run: none
     jurisdiction: AB
-  - org: CICE (BC Centre for Innovation and Clean Energy)
-    url: https://cice.ca/projects/
+  - org: NorthX Climate Tech (formerly CICE, BC Centre for Innovation and Clean Energy)
+    url: https://northx.ca/portfolio/
     diff_mode: list
     first_run: none
     jurisdiction: BC

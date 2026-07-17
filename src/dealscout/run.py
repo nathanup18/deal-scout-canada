@@ -21,10 +21,17 @@ log = logging.getLogger("dealscout")
 
 RAW_DIR = pathlib.Path(__file__).resolve().parents[2] / "raw"
 
+# CLI lane name -> raw/state file basename. Kept separate because the CLI
+# arg "grant-pages" would otherwise produce raw/grant-pages.json, mismatched
+# against the underscored state/grant_pages*.json convention used everywhere
+# else (and in the scheduled task's own instructions).
+RAW_NAMES = {"cohorts": "cohorts", "grant-pages": "grant_pages", "grants": "grants",
+             "nserc": "nserc", "orgbook": "orgbook", "corpcan": "corpcan"}
+
 
 def _write_raw(lane: str, data) -> None:
     RAW_DIR.mkdir(exist_ok=True)
-    path = RAW_DIR / f"{lane}.json"
+    path = RAW_DIR / f"{RAW_NAMES[lane]}.json"
     path.write_text(json.dumps(data, indent=1, ensure_ascii=False, sort_keys=True))
     log.info("wrote %s", path)
 
