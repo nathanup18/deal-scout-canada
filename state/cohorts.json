@@ -1,0 +1,38 @@
+{
+ "https://creativedestructionlab.com/companies/?stream=climate": {
+  "checked": "2026-07-17",
+  "hash": "bb37aacd247f8f2d4f0aa183fa7ad21efec174d8744a0e236353972c9bd9bcd5"
+ },
+ "https://creativedestructionlab.com/companies/?stream=matter": {
+  "checked": "2026-07-17",
+  "hash": "c4d34693a27859f2dbb127643aef7851ba0ef5a65fe62b46ce849b081c8cca2f"
+ },
+ "https://cyclemomentum.com/startups/": {
+  "checked": "2026-07-17",
+  "hash": "d3dbff1fefdc43fc2d5c69390a063cea220a00afae184c0f8b589baa7e5522da"
+ },
+ "https://foresightcac.com/companies": {
+  "checked": "2026-07-17",
+  "hash": "40a918fdef29f1ffdd08ccf1440a3c0ef3f5c39e99b8e342abc0d3a895b6c3d3"
+ },
+ "https://spring.is/our-venture-alumni/": {
+  "checked": "2026-07-17",
+  "hash": "fea56c7d46d5ed370d25c522502f3e6ae66a013a0fdb507a309b4de08607a7f1"
+ },
+ "https://www.evol.ca/blogue/": {
+  "checked": "2026-07-17",
+  "hash": "fe98b6f716dcfbddf490eeb7775bc8edf4d15f2b60b6c0795cd01d3011613878"
+ },
+ "https://www.innovatebc.ca/news": {
+  "checked": "2026-07-17",
+  "hash": "158a6f0ec62069d1c065a807e0ee1ec08bc94d4ca0a8d68131d53f87fb600cfe"
+ },
+ "https://www.marsdd.com/feed/": {
+  "checked": "2026-07-17",
+  "hash": "583de9f7309db2f70e8ac947898674caee486a680f1b6838495c0dccb13ac1b8"
+ },
+ "https://www.velocityincubator.com/companies": {
+  "checked": "2026-07-17",
+  "hash": "05e90765503c750214b26e5dd1132e0b14735b605f050b9aafc2d783bde4b6ce"
+ }
+}
