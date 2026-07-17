@@ -10,8 +10,9 @@ vetted by the granting department, so no garbage screen is needed here.
 
 import csv
 import datetime as dt
-import io
 import logging
+import os
+import tempfile
 
 from .. import state
 from ..http_util import session
@@ -64,13 +65,37 @@ def run() -> list[dict]:
     candidates: list[dict] = []
     scanned = 0
     csv.field_size_limit(10_000_000)
-    # Full download rather than a raw-stream wrapper: reading resp.raw directly
-    # can close mid-read (urllib3 releases the connection on EOF detection),
-    # and line-based streaming would mis-split any quoted field containing an
-    # embedded newline. This file is tens of MB, not worth the fragility.
-    resp = session().get(CSV_URL, timeout=600)
-    resp.raise_for_status()
-    reader = csv.DictReader(io.StringIO(resp.content.decode("utf-8", errors="replace")))
+    # This file is ~2.3GB uncompressed -- loading it into memory (even as one
+    # big decoded string) OOM-kills a standard GitHub Actions runner. Stream
+    # to a temp file on disk instead, then hand csv.DictReader a real text-mode
+    # file handle: it still correctly reassembles quoted fields containing
+    # embedded newlines (the csv module pulls further lines from the iterator
+    # as needed), same as the in-memory version, just without holding
+    # multiple full copies in RAM. Reading resp.raw directly was tried first
+    # and rejected -- it closes mid-read under urllib3's connection-pool
+    # release behavior.
+    with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as tmp:
+        tmp_path = tmp.name
+        with session().get(CSV_URL, stream=True, timeout=600) as resp:
+            resp.raise_for_status()
+            for chunk in resp.iter_content(chunk_size=1 << 20):
+                tmp.write(chunk)
+    try:
+        with open(tmp_path, encoding="utf-8", errors="replace", newline="") as f:
+            reader = csv.DictReader(f)
+            candidates, scanned = _filter_rows(reader, cutoff, seen)
+    finally:
+        os.remove(tmp_path)
+    log.info("grants_gc: scanned %d rows, %d matches", scanned, len(candidates))
+    st["last_run"] = dt.date.today().isoformat()
+    st["seen_refs"] = sorted(seen)[-50000:]
+    state.save("grants_gc", st)
+    return candidates
+
+
+def _filter_rows(reader, cutoff: str, seen: set[str]) -> tuple[list[dict], int]:
+    candidates: list[dict] = []
+    scanned = 0
     for row in reader:
         scanned += 1
         start = (row.get("agreement_start_date") or "").strip()[:10]
@@ -110,8 +135,4 @@ def run() -> list[dict]:
                            + name.replace(" ", "%20")),
             "raw_ref": ref or f"gc:{name[:80]}:{start}",
         })
-    log.info("grants_gc: scanned %d rows, %d matches", scanned, len(candidates))
-    st["last_run"] = dt.date.today().isoformat()
-    st["seen_refs"] = sorted(seen)[-50000:]
-    state.save("grants_gc", st)
-    return candidates
+    return candidates, scanned
