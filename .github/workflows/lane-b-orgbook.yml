@@ -1,0 +1,32 @@
+name: lane-b-orgbook
+on:
+  schedule:
+    - cron: "30 13 * * *"   # daily 13:30 UTC
+  workflow_dispatch:
+
+concurrency: state-writes
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: PYTHONPATH=src python -m dealscout.run orgbook
+        env:
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - name: Commit state
+        run: |
+          git config user.name "deal-scout-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git pull --rebase
+          git add state/
+          git diff --cached --quiet || git commit -m "state: orgbook $(date -u +%F)"
+          git push

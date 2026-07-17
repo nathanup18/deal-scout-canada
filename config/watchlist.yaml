@@ -1,0 +1,82 @@
+# Lane B director-pedigree watchlist.
+# Seeded 2026-07-17 from web-researched Canadian climate anchor-company alumni
+# (Specter export unavailable — connector auth broken; top up from Specter
+# searches 41846/41847 when restored). Founder/PI names from the Deal Scout
+# Airtable are merged in at runtime, so don't duplicate those here.
+# Excluded from the research pass: Gregory Zhang (e-Zinc founder, deceased 2021),
+# Gregor Robertson (now federal Minister of Housing — a match would be noise).
+people:
+  # Carbon Engineering
+  - {name: David Keith, affiliation: "Carbon Engineering (founder)", status: "academic, board roles"}
+  - {name: Adrian Corless, affiliation: "Carbon Engineering (ex-CEO)", status: "serial, CEO CarbonCapture Inc."}
+  - {name: Steve Oldham, affiliation: "Carbon Engineering (ex-CEO)", status: "serial, CEO Captura"}
+  - {name: Daniel Friedmann, affiliation: "Carbon Engineering (CEO through Oxy acquisition)", status: "serial director"}
+  - {name: Denis Connor, affiliation: "Carbon Engineering (founding director, QuestAir founder)", status: "serial"}
+  - {name: Geoffrey Holmes, affiliation: "Carbon Engineering (early R&D)", status: "departed, Calcarea/Captura"}
+  - {name: Kenton Heidel, affiliation: "Carbon Engineering (early technical)", status: "unverified"}
+  - {name: David St. Angelo, affiliation: "Carbon Engineering (early VP)", status: "unverified"}
+  # Svante / Inventys
+  - {name: Brett Henkel, affiliation: "Svante (co-founder)", status: "still there"}
+  - {name: Claude Letourneau, affiliation: "Svante (CEO)", status: "serial"}
+  - {name: Soheil Khiavi, affiliation: "Svante (co-founder, ex-CTO)", status: "departed, co-founded Hydron"}
+  - {name: Andre Boulet, affiliation: "Svante (co-founder, ex-CEO)", status: "departed"}
+  - {name: Darryl Wolanski, affiliation: "Svante (co-founder)", status: "unverified"}
+  # General Fusion
+  - {name: Michel Laberge, affiliation: "General Fusion (founder)", status: "still there"}
+  - {name: Doug Richardson, affiliation: "General Fusion (ex-CEO, ex-Creo)", status: "departed"}
+  - {name: Christofer Mowry, affiliation: "General Fusion (ex-CEO)", status: "serial, CEO Type One Energy"}
+  - {name: Greg Twinney, affiliation: "General Fusion (CEO)", status: "still there"}
+  - {name: Michael Delage, affiliation: "General Fusion (CTO, early employee)", status: "long tenure"}
+  # Hydrostor
+  - {name: Curtis VanWalleghem, affiliation: "Hydrostor (co-founder, CEO)", status: "still there"}
+  - {name: Cameron Lewis, affiliation: "Hydrostor (co-founder, CTO)", status: "unverified"}
+  # Li-Cycle
+  - {name: Ajay Kochhar, affiliation: "Li-Cycle (co-founder, ex-CEO)", status: "departed 2025"}
+  - {name: Tim Johnston, affiliation: "Li-Cycle (co-founder), Li-Metal co-founder", status: "serial"}
+  - {name: Kunal Phalpher, affiliation: "Li-Cycle (early exec)", status: "departed, President Li-Metal"}
+  # e-Zinc
+  - {name: James Larsen, affiliation: "e-Zinc (CEO)", status: "still there"}
+  # Ecobee
+  - {name: Stuart Lombard, affiliation: "Ecobee (co-founder, ex-CEO)", status: "retired 2023, serial founder profile"}
+  - {name: John Metselaar, affiliation: "Ecobee (co-founder)", status: "departed"}
+  - {name: Mark Malchiondo, affiliation: "Ecobee (co-founder, tech lead)", status: "departed"}
+  # CarbonCure
+  - {name: Robert Niven, affiliation: "CarbonCure (founder, CEO)", status: "still there"}
+  - {name: Rob Niven, affiliation: "CarbonCure (founder, CEO) — short-form alias", status: "still there"}
+  - {name: Jennifer Wagner, affiliation: "CarbonCure (ex-President)", status: "departed, BEV fellow exploring new ventures"}
+  - {name: Sean Monkman, affiliation: "CarbonCure (early SVP Technology)", status: "departed exec role"}
+  # Nexii
+  - {name: Stephen Sidwell, affiliation: "Nexii (co-founder, ex-CEO)", status: "departed 2023"}
+  # Eavor
+  - {name: John Redfern, affiliation: "Eavor (co-founder, CEO)", status: "still there"}
+  - {name: Paul Cairns, affiliation: "Eavor (co-founder)", status: "still there"}
+  - {name: Matt Toews, affiliation: "Eavor (co-founder, CTO/COO)", status: "still there"}
+  - {name: Jeanine Vany, affiliation: "Eavor (co-founder)", status: "still there"}
+  # Summit Nanotech
+  - {name: Amanda Hall, affiliation: "Summit Nanotech (founder, CEO)", status: "still there"}
+  # Moment Energy
+  - {name: Edward Chiang, affiliation: "Moment Energy (co-founder, CEO)", status: "still there"}
+  - {name: Sumreen Rattan, affiliation: "Moment Energy (co-founder, COO)", status: "still there"}
+  - {name: Gabriel Soares, affiliation: "Moment Energy (co-founder)", status: "still there"}
+  - {name: Gurmesh Sidhu, affiliation: "Moment Energy (co-founder)", status: "still there"}
+  # Pani Energy
+  - {name: Devesh Bharadwaj, affiliation: "Pani Energy (founder, CEO)", status: "still there"}
+  # Clir Renewables
+  - {name: Gareth Brown, affiliation: "Clir Renewables (co-founder, CEO)", status: "still there"}
+  # Semios
+  - {name: Michael Gilbert, affiliation: "Semios (founder, ex-CEO)", status: "departed 2022, new-venture candidate"}
+  # Terramera
+  - {name: Karn Manhas, affiliation: "Terramera (founder, Executive Chair)", status: "serial, Mirratera spinout"}
+  # Jetti Resources
+  - {name: Mike Outwin, affiliation: "Jetti Resources (co-founder, CEO)", status: "still there"}
+  - {name: Andrew Perlman, affiliation: "Jetti Resources (co-founder)", status: "serial venture builder"}
+  # Opus One Solutions
+  - {name: Joshua Wong, affiliation: "Opus One (founder, ex-CEO)", status: "serial, founded ThinkLabs AI 2024"}
+  # Peak Power
+  - {name: Derek Lim Soo, affiliation: "Peak Power (co-founder, CEO)", status: "still there"}
+  - {name: Matthew Sachs, affiliation: "Peak Power (co-founder, COO)", status: "unverified"}
+  - {name: Imran Noorani, affiliation: "Peak Power (early employee, ex-CSO)", status: "departed, CanREA"}
+  # BrainBox AI
+  - {name: Sam Ramadori, affiliation: "BrainBox AI (CEO)", status: "still there (Trane)"}
+  - {name: Jean-Simon Venne, affiliation: "BrainBox AI (co-founder, CTO)", status: "still there (Trane), spinout candidate"}
+  - {name: Sean Neely, affiliation: "BrainBox AI (co-founder), RealTerm Energy co-founder", status: "serial, advisory"}

@@ -1,0 +1,47 @@
+# Lane C — accelerator cohort pages, diff-scraped weekly.
+# Add/remove pages here, not in code.
+#
+# diff_mode:
+#   list  — Haiku extracts the full company list each run; new names vs state are signals
+#   news  — Haiku extracts companies named in new posts/announcements since last run
+# first_run: what to ingest when no state exists yet
+#   recent — only current-cohort / recent announcements (avoids flooding with old alumni)
+#   none   — baseline only, signals start on the first change
+pages:
+  - org: Creative Destruction Lab (Climate)
+    url: https://creativedestructionlab.com/companies/?stream=climate
+    diff_mode: list
+    first_run: recent
+  - org: Creative Destruction Lab (Matter)
+    url: https://creativedestructionlab.com/companies/?stream=matter
+    diff_mode: list
+    first_run: recent
+  - org: Foresight Canada
+    url: https://foresightcac.com/companies
+    diff_mode: list
+    first_run: none          # logo grid of all alumni; names in img alts; only diffs are meaningful
+    include_attrs: true      # company names live in img alt text / hrefs, not text nodes
+  - org: MaRS Discovery District
+    url: https://www.marsdd.com/feed/
+    diff_mode: news          # venture directory is bot-blocked; RSS names supported ventures
+    first_run: recent
+  - org: Velocity (UWaterloo)
+    url: https://www.velocityincubator.com/companies
+    diff_mode: list
+    first_run: recent
+  - org: Cycle Momentum
+    url: https://cyclemomentum.com/startups/
+    diff_mode: list
+    first_run: recent
+  - org: evol (Québec)
+    url: https://www.evol.ca/blogue/
+    diff_mode: news          # no portfolio page; blog profiles financed companies
+    first_run: recent
+  - org: Spring Activator
+    url: https://spring.is/our-venture-alumni/
+    diff_mode: list
+    first_run: none          # ~300 alumni; only new additions are signals
+  - org: Innovate BC
+    url: https://www.innovatebc.ca/news
+    diff_mode: news
+    first_run: recent

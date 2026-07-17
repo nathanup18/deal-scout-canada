@@ -1,0 +1,32 @@
+# Lane B — corporation-name keyword tokens. Names are lowercased and
+# accent-folded before matching, so one token covers FR/EN accent variants
+# (décarbon -> decarbon, électrique -> electrique).
+# substring: matches anywhere in the name. word: whole-word only (avoids
+# "EV" inside "Development").
+substring:
+  - carbon      # also catches décarbon/decarbon after folding
+  - climat      # climate + climatique
+  - solar
+  - battery
+  - batterie
+  - geotherm
+  - biochar
+  - methane
+  - emission
+  - renewab
+  - recycl
+  - circular
+  - compost
+  - agri
+  - aqua
+  - thermal
+  - retrofit
+  - electrique
+word:
+  - ev
+  - grid
+# Flagged but scored low: hydrogen is off-thesis; rows are logged and sorted
+# to the bottom of the digest so the team sees it was caught and skipped.
+hydrogen:
+  - hydrogen
+  - hydrogene
