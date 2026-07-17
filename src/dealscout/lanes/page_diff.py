@@ -1,10 +1,18 @@
 """Generic diff-scrape engine used by lane C (cohorts) and lane A's
 provincial funder pages (ERA, CICE).
 
-State per page: content hash + last extracted company list. On change,
-Haiku re-extracts and the list diff becomes signals. first_run: 'recent'
-ingests only companies the page marks as current-cohort/recent; 'none'
-just sets the baseline.
+This module does ONLY deterministic work: fetch, hash, diff. It has no
+model calls. When a page's content hash changes, the page's extracted
+text is written to raw/<state_name>.json for the Claude scheduled task
+to read, extract company names from, and screen — that synthesis step
+happens outside CI entirely.
+
+State ownership is split on purpose so CI and the scheduled task never
+write the same file:
+  state/<name>.json           — CI-owned: {url: {hash, checked}}
+  state/<name>_companies.json — Claude-owned: {url: [known company names]}
+    (read here only, to decide first_run behavior; the scheduled task
+    updates it after each processing pass)
 """
 
 import datetime as dt
@@ -14,42 +22,23 @@ import pathlib
 
 import yaml
 
-from .. import haiku, state
+from .. import state
 from ..http_util import fetch, page_text, session
-from ..models import Signal
 
 log = logging.getLogger("dealscout")
 
 CONFIG_DIR = pathlib.Path(__file__).resolve().parents[3] / "config"
 
 
-def _signal(org: str, page: dict, comp: dict, screened: dict, lane: str,
-            signal_type: str) -> Signal | None:
-    name = comp["name"].strip()
-    verdict = screened.get(name, {})
-    if verdict and not verdict.get("keep", True):
-        log.info("garbage skip (%s): %s — %s", org, name, verdict.get("reason", ""))
-        return None
-    detail = comp.get("description") or verdict.get("one_liner") or ""
-    return Signal(
-        company=name,
-        source_lane=lane,
-        signal_type=signal_type,
-        jurisdiction=page.get("jurisdiction", "Other"),
-        signal_date=dt.date.today().isoformat(),
-        detail=f"{org}: {detail}".strip(": "),
-        program=org,
-        source_url=page["url"],
-        raw_ref=f"pagediff:{org}",
-        website=comp.get("website", ""),
-    )
-
-
-def run(config_file: str, state_name: str, lane: str, signal_type: str) -> list[Signal]:
+def run(config_file: str, state_name: str) -> dict:
+    """Returns {url: {org, jurisdiction, first_run, diff_mode, text}} for
+    every page whose content changed since last run. Also written to
+    raw/<state_name>.json by the caller (run.py)."""
     cfg = yaml.safe_load((CONFIG_DIR / config_file).read_text())
     st = state.load(state_name)
+    known_companies = state.load(f"{state_name}_companies")  # Claude-owned, read-only here
     sess = session()
-    signals: list[Signal] = []
+    changed: dict = {}
 
     for page in cfg["pages"]:
         org, url = page["org"], page["url"]
@@ -67,33 +56,17 @@ def run(config_file: str, state_name: str, lane: str, signal_type: str) -> list[
             log.info("%s: unchanged", org)
             continue
 
-        companies = haiku.extract_companies(org, text, page.get("diff_mode", "list"))
-        names_now = sorted({c["name"].strip() for c in companies if c.get("name")})
-
-        if not entry:  # first run
-            if page.get("first_run", "recent") == "recent":
-                fresh = [c for c in companies if c.get("recent")]
-            else:
-                fresh = []
-            log.info("%s: baseline %d companies, %d recent ingested",
-                     org, len(names_now), len(fresh))
-        else:
-            known = set(entry.get("companies", []))
-            fresh = [c for c in companies if c["name"].strip() not in known]
-            log.info("%s: %d new of %d", org, len(fresh), len(names_now))
-
-        if fresh:
-            screened = haiku.screen_candidates(
-                [{"name": c["name"], "description": c.get("description", "")}
-                 for c in fresh],
-                context=f"Newly listed on {org} ({url})")
-            for comp in fresh:
-                sig = _signal(org, page, comp, screened, lane, signal_type)
-                if sig:
-                    signals.append(sig)
-
-        st[url] = {"hash": digest, "companies": names_now,
-                   "checked": dt.date.today().isoformat()}
+        log.info("%s: changed, queuing for synthesis (%d chars)", org, len(text))
+        changed[url] = {
+            "org": org,
+            "url": url,
+            "jurisdiction": page.get("jurisdiction", "Other"),
+            "first_run": page.get("first_run", "recent") if url not in known_companies else "diff",
+            "diff_mode": page.get("diff_mode", "list"),
+            "known_companies": known_companies.get(url, []),
+            "text": text[:150_000],
+        }
+        st[url] = {"hash": digest, "checked": dt.date.today().isoformat()}
 
     state.save(state_name, st)
-    return signals
+    return changed

@@ -5,9 +5,11 @@ month) lists every new CBCA certificate as an HTML table: corp number,
 name, province, effective date.
 
 Track 1 (director match): pull directors for every new corp via the
-Federal Corporation API and match the pedigree watchlist. This surfaces
-numbered corps. ~7k corps/month at a 55/min throttle ≈ 2h in CI.
-Track 2 (keyword match): climate tokens in the corporation name.
+Federal Corporation API and match the static pedigree watchlist
+(config/watchlist.yaml — deterministic string matching, no model call).
+This surfaces numbered corps. ~7k corps/month at a 55/min throttle ≈ 2h.
+Track 2 (keyword match): climate tokens in the corporation name — flagged
+here, garbage-screened later by the Claude scheduled task.
 
 The API key travels as the user_key query parameter (per the ISED API
 Store subscription page). NEVER log request URLs — they contain the key.
@@ -22,10 +24,9 @@ import time
 
 import yaml
 
-from .. import haiku, state
-from ..airtable_client import Airtable
-from ..http_util import fetch, page_text, session
-from ..models import Signal, fold
+from .. import state
+from ..http_util import fetch, session
+from ..models import fold
 from ..watchlist import Watchlist
 
 log = logging.getLogger("dealscout")
@@ -36,8 +37,6 @@ DIRECTORS_URL = "https://ised-isde.api.canada.ca/corporations/api/v2/corporation
 CORP_SEARCH_URL = "https://ised-isde.canada.ca/cbr-rec/en/search/results?search={num}"
 CALLS_PER_MIN = 55  # Public Plan allows 60/min
 CONFIG_DIR = pathlib.Path(__file__).resolve().parents[3] / "config"
-
-PROVINCES = {"BC": "BC", "AB": "AB", "ON": "ON", "QC": "QC"}
 
 
 def load_keywords() -> dict:
@@ -111,52 +110,38 @@ class DirectorClient:
         return data if isinstance(data, list) else []
 
 
-def run(skip_directors: bool = False) -> list[Signal]:
+def run(skip_directors: bool = False) -> dict:
+    """Returns {"keyword_hits": [...], "director_hits": [...]}."""
     st = state.load("corpcan")
     sess = session()
     html = fetch(sess, MONTHLY_URL, timeout=120)
     label, corps = _parse_monthly(html)
     if label and label == st.get("last_month"):
         log.info("corpcan: %s already processed", label)
-        return []
+        return {"keyword_hits": [], "director_hits": []}
     log.info("corpcan: %s — %d new corporations", label or "(unknown month)", len(corps))
 
     kw = load_keywords()
-    signals: list[Signal] = []
     keyword_hits = []
+    matched_numbers = set()
     for c in corps:
         hit = match_name(c["name"], kw)
         if hit and not re.match(r"^\d{7,8} CANADA (INC|LTD|CORP)", c["name"].upper()):
-            keyword_hits.append((c, hit))
+            matched_numbers.add(c["number"])
+            keyword_hits.append({
+                "company": c["name"],
+                "matched_token": hit,
+                "hydrogen": hit == "hydrogen",
+                "corp_number": c["number"],
+                "province": c["province"],
+                "date": c["date"],
+                "source_url": CORP_SEARCH_URL.format(num=c["number"].split("-")[0]),
+                "raw_ref": f"cbca:{c['number']}",
+            })
 
-    screened = haiku.screen_candidates(
-        [{"name": c["name"], "description": f"new federal corp, keyword '{h}'"}
-         for c, h in keyword_hits],
-        context="Newly incorporated federal (CBCA) corporations matching climate keywords")
-
-    matched_numbers = set()
-    for c, hit in keyword_hits:
-        v = screened.get(c["name"], {})
-        if v and not v.get("keep", True):
-            log.info("garbage skip: %s — %s", c["name"], v.get("reason", ""))
-            continue
-        matched_numbers.add(c["number"])
-        signals.append(Signal(
-            company=c["name"].title() if c["name"].isupper() else c["name"],
-            source_lane="New Corps",
-            signal_type="Other",
-            jurisdiction="Federal",
-            signal_date=c["date"],
-            detail=(f"New CBCA incorporation (keyword: {hit}, {c['province']}). "
-                    + (v.get("one_liner") or "")),
-            source_url=CORP_SEARCH_URL.format(num=c["number"].split("-")[0]),
-            raw_ref=f"cbca:{c['number']}",
-            location=c["province"],
-            hydrogen=hit == "hydrogen",
-        ))
-
+    director_hits = []
     if not skip_directors:
-        wl = Watchlist(airtable_founders=Airtable().founder_names())
+        wl = Watchlist()  # static config/watchlist.yaml only — no live Airtable read in CI
         client = DirectorClient()
         checked = 0
         for c in corps:
@@ -174,25 +159,22 @@ def run(skip_directors: bool = False) -> list[Signal]:
                 if not m:
                     continue
                 display, confidence = m
-                note = ("WATCHLIST MATCH" if confidence == "exact"
-                        else "borderline watchlist match — adjudicate")
-                signals.append(Signal(
-                    company=c["name"],
-                    source_lane="New Corps",
-                    signal_type="Other",
-                    jurisdiction="Federal",
-                    signal_date=c["date"],
-                    detail=(f"New CBCA incorporation, {note}: director "
-                            f"{first} {last} ≈ {display} ({c['province']})"),
-                    source_url=CORP_SEARCH_URL.format(num=c["number"].split("-")[0]),
-                    raw_ref=f"cbca:{c['number']}",
-                    director_names=f"{first} {last} — {display} [{confidence}]",
-                    founder=f"{first} {last}",
-                    location=c["province"],
-                ))
+                director_hits.append({
+                    "company": c["name"],
+                    "corp_number": c["number"],
+                    "province": c["province"],
+                    "date": c["date"],
+                    "director_first": first,
+                    "director_last": last,
+                    "watchlist_match": display,
+                    "confidence": confidence,
+                    "source_url": CORP_SEARCH_URL.format(num=c["number"].split("-")[0]),
+                    "raw_ref": f"cbca:{c['number']}",
+                })
                 break
 
     st["last_month"] = label
     state.save("corpcan", st)
-    log.info("corpcan: %d signals", len(signals))
-    return signals
+    log.info("corpcan: %d keyword hits, %d director hits",
+              len(keyword_hits), len(director_hits))
+    return {"keyword_hits": keyword_hits, "director_hits": director_hits}

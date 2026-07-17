@@ -1,8 +1,6 @@
 name: lane-c-cohorts
 on:
-  schedule:
-    - cron: "0 13 * * 1"   # weekly, Monday 13:00 UTC (~6am PT)
-  workflow_dispatch:
+  workflow_dispatch:   # triggered by the daily Claude scheduled task, not GitHub's own cron
 
 concurrency: state-writes
 
@@ -19,14 +17,11 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - run: PYTHONPATH=src python -m dealscout.run cohorts
-        env:
-          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      - name: Commit state
+      - name: Commit raw output + state
         run: |
           git config user.name "deal-scout-bot"
           git config user.email "bot@users.noreply.github.com"
           git pull --rebase
-          git add state/
-          git diff --cached --quiet || git commit -m "state: cohorts $(date -u +%F)"
+          git add raw/ state/
+          git diff --cached --quiet || git commit -m "cohorts: $(date -u +%F)"
           git push

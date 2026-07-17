@@ -1,9 +1,11 @@
 """Lane A source 1 — federal Grants & Contributions proactive disclosure.
 
 Streams the combined grants.csv from open.canada.ca (large file) and filters:
-target departments/programs, $25k–$2M, for-profit recipients, start date in
+target departments/programs, $25k-$2M, for-profit recipients, start date in
 window (first run: 12 months back; steady state: since last run with a 45-day
-overlap because departments disclose quarterly and late).
+overlap because departments disclose quarterly and late). Fully deterministic
+— no model call. Recipient legal names from proactive disclosure are already
+vetted by the granting department, so no garbage screen is needed here.
 """
 
 import csv
@@ -13,7 +15,6 @@ import logging
 
 from .. import state
 from ..http_util import session
-from ..models import Signal
 
 log = logging.getLogger("dealscout")
 
@@ -50,7 +51,7 @@ def _dept_match(row: dict) -> bool:
 PROVINCES = {"BC": "BC", "AB": "AB", "ON": "ON", "QC": "QC"}
 
 
-def run() -> list[Signal]:
+def run() -> list[dict]:
     st = state.load("grants_gc")
     seen: set[str] = set(st.get("seen_refs", []))
     if st.get("last_run"):
@@ -60,7 +61,7 @@ def run() -> list[Signal]:
         cutoff = (dt.date.today() - dt.timedelta(days=BACKFILL_DAYS)).isoformat()
     log.info("grants_gc: cutoff %s, %d seen refs", cutoff, len(seen))
 
-    signals: list[Signal] = []
+    candidates: list[dict] = []
     scanned = 0
     csv.field_size_limit(10_000_000)
     with session().get(CSV_URL, stream=True, timeout=300) as resp:
@@ -95,22 +96,20 @@ def run() -> list[Signal]:
             prog = (row.get("prog_name_en") or "").strip()
             desc = (row.get("description_en") or "").strip()
             prov = (row.get("recipient_province") or "").strip().upper()
-            signals.append(Signal(
-                company=name,
-                source_lane="Grants",
-                signal_type="Grant - Other",
-                jurisdiction=PROVINCES.get(prov, "Federal"),
-                signal_date=start,
-                detail=desc[:1200] or f"{prog} award",
-                amount=value,
-                program=prog or (row.get("owner_org") or ""),
-                source_url="https://search.open.canada.ca/grants/?search_text="
-                           + name.replace(" ", "%20"),
-                raw_ref=ref or f"gc:{name[:80]}:{start}",
-                location=prov,
-            ))
-    log.info("grants_gc: scanned %d rows, %d matches", scanned, len(signals))
+            candidates.append({
+                "company": name,
+                "amount": value,
+                "signal_date": start,
+                "detail": desc[:1200] or f"{prog} award",
+                "program": prog or (row.get("owner_org") or ""),
+                "jurisdiction": PROVINCES.get(prov, "Federal"),
+                "province": prov,
+                "source_url": ("https://search.open.canada.ca/grants/?search_text="
+                               + name.replace(" ", "%20")),
+                "raw_ref": ref or f"gc:{name[:80]}:{start}",
+            })
+    log.info("grants_gc: scanned %d rows, %d matches", scanned, len(candidates))
     st["last_run"] = dt.date.today().isoformat()
     st["seen_refs"] = sorted(seen)[-50000:]
     state.save("grants_gc", st)
-    return signals
+    return candidates
