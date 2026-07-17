@@ -7,7 +7,7 @@ on:
         type: boolean
         default: false
 
-concurrency: state-writes
+concurrency: federal-state
 
 permissions:
   contents: write

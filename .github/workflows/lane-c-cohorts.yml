@@ -2,7 +2,7 @@ name: lane-c-cohorts
 on:
   workflow_dispatch:   # triggered by the daily Claude scheduled task, not GitHub's own cron
 
-concurrency: state-writes
+concurrency: cohorts-state
 
 permissions:
   contents: write

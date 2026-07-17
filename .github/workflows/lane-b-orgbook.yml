@@ -2,7 +2,7 @@ name: lane-b-orgbook
 on:
   workflow_dispatch:   # triggered by the daily Claude scheduled task, not GitHub's own cron
 
-concurrency: state-writes
+concurrency: orgbook-state
 
 permissions:
   contents: write

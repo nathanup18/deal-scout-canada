@@ -2,7 +2,7 @@ name: lane-a-grants
 on:
   workflow_dispatch:   # triggered by the daily Claude scheduled task, not GitHub's own cron
 
-concurrency: state-writes
+concurrency: grants-state
 
 permissions:
   contents: write
