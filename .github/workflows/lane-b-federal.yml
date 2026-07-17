@@ -1,11 +1,6 @@
 name: lane-b-federal
 on:
   workflow_dispatch:   # triggered by the daily Claude scheduled task, not GitHub's own cron
-    inputs:
-      skip_directors:
-        description: "Keyword track only (skip the ~2h director API sweep)"
-        type: boolean
-        default: false
 
 concurrency: federal-state
 
@@ -15,16 +10,13 @@ permissions:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 300
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - run: PYTHONPATH=src python -m dealscout.run corpcan ${{ inputs.skip_directors && '--skip-directors' || '' }}
-        env:
-          CORPCAN_API_KEY: ${{ secrets.CORPCAN_API_KEY }}
+      - run: PYTHONPATH=src python -m dealscout.run corpcan
       - name: Commit raw output + state
         if: always()
         run: |

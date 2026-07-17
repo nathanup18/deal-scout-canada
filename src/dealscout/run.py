@@ -40,8 +40,6 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("lane", choices=["cohorts", "grant-pages", "grants",
                                          "nserc", "orgbook", "corpcan"])
-    parser.add_argument("--skip-directors", action="store_true",
-                        help="corpcan: keyword track only (no API sweep)")
     args = parser.parse_args()
 
     if args.lane == "cohorts":
@@ -66,8 +64,8 @@ def main():
         count = len(result)
     else:
         from .lanes import corpcan
-        result = corpcan.run(skip_directors=args.skip_directors)
-        count = len(result["keyword_hits"]) + len(result["director_hits"])
+        result = corpcan.run()
+        count = len(result)
 
     log.info("%s: %d raw candidates", args.lane, count)
     _write_raw(args.lane, result)
