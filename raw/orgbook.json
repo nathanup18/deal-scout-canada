@@ -1,0 +1,20 @@
+[
+ {
+  "company": "ON THE ROAD BATTERIES LTD.",
+  "hydrogen": false,
+  "jurisdiction": "BC",
+  "matched_token": "batterie",
+  "raw_ref": "orgbook:BC1596175",
+  "registered": "2026-06-19",
+  "source_url": "https://orgbook.gov.bc.ca/entity/BC1596175"
+ },
+ {
+  "company": "G5 COMMERCIAL EV GROUP",
+  "hydrogen": false,
+  "jurisdiction": "BC",
+  "matched_token": "ev",
+  "raw_ref": "orgbook:FM1111281",
+  "registered": "2026-06-24",
+  "source_url": "https://orgbook.gov.bc.ca/entity/FM1111281"
+ }
+]
