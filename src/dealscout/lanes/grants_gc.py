@@ -64,50 +64,52 @@ def run() -> list[dict]:
     candidates: list[dict] = []
     scanned = 0
     csv.field_size_limit(10_000_000)
-    with session().get(CSV_URL, stream=True, timeout=300) as resp:
-        resp.raise_for_status()
-        resp.raw.decode_content = True  # transparently gunzip the stream
-        wrapper = io.TextIOWrapper(resp.raw, encoding="utf-8", errors="replace",
-                                   newline="")
-        for row in csv.DictReader(wrapper):
-            scanned += 1
-            start = (row.get("agreement_start_date") or "").strip()[:10]
-            if not start or start < cutoff:
-                continue
-            try:
-                value = float(row.get("agreement_value") or 0)
-            except ValueError:
-                continue
-            if not (MIN_VALUE <= value <= MAX_VALUE):
-                continue
-            if not _dept_match(row) or not _looks_for_profit(row):
-                continue
-            country = (row.get("recipient_country") or "CA").strip().upper()
-            if country not in ("CA", "CAN", ""):
-                continue
-            ref = (row.get("ref_number") or "").strip()
-            if ref and ref in seen:
-                continue
-            seen.add(ref)
+    # Full download rather than a raw-stream wrapper: reading resp.raw directly
+    # can close mid-read (urllib3 releases the connection on EOF detection),
+    # and line-based streaming would mis-split any quoted field containing an
+    # embedded newline. This file is tens of MB, not worth the fragility.
+    resp = session().get(CSV_URL, timeout=600)
+    resp.raise_for_status()
+    reader = csv.DictReader(io.StringIO(resp.content.decode("utf-8", errors="replace")))
+    for row in reader:
+        scanned += 1
+        start = (row.get("agreement_start_date") or "").strip()[:10]
+        if not start or start < cutoff:
+            continue
+        try:
+            value = float(row.get("agreement_value") or 0)
+        except ValueError:
+            continue
+        if not (MIN_VALUE <= value <= MAX_VALUE):
+            continue
+        if not _dept_match(row) or not _looks_for_profit(row):
+            continue
+        country = (row.get("recipient_country") or "CA").strip().upper()
+        if country not in ("CA", "CAN", ""):
+            continue
+        ref = (row.get("ref_number") or "").strip()
+        if ref and ref in seen:
+            continue
+        seen.add(ref)
 
-            name = (row.get("recipient_legal_name") or "").strip()
-            if not name:
-                continue
-            prog = (row.get("prog_name_en") or "").strip()
-            desc = (row.get("description_en") or "").strip()
-            prov = (row.get("recipient_province") or "").strip().upper()
-            candidates.append({
-                "company": name,
-                "amount": value,
-                "signal_date": start,
-                "detail": desc[:1200] or f"{prog} award",
-                "program": prog or (row.get("owner_org") or ""),
-                "jurisdiction": PROVINCES.get(prov, "Federal"),
-                "province": prov,
-                "source_url": ("https://search.open.canada.ca/grants/?search_text="
-                               + name.replace(" ", "%20")),
-                "raw_ref": ref or f"gc:{name[:80]}:{start}",
-            })
+        name = (row.get("recipient_legal_name") or "").strip()
+        if not name:
+            continue
+        prog = (row.get("prog_name_en") or "").strip()
+        desc = (row.get("description_en") or "").strip()
+        prov = (row.get("recipient_province") or "").strip().upper()
+        candidates.append({
+            "company": name,
+            "amount": value,
+            "signal_date": start,
+            "detail": desc[:1200] or f"{prog} award",
+            "program": prog or (row.get("owner_org") or ""),
+            "jurisdiction": PROVINCES.get(prov, "Federal"),
+            "province": prov,
+            "source_url": ("https://search.open.canada.ca/grants/?search_text="
+                           + name.replace(" ", "%20")),
+            "raw_ref": ref or f"gc:{name[:80]}:{start}",
+        })
     log.info("grants_gc: scanned %d rows, %d matches", scanned, len(candidates))
     st["last_run"] = dt.date.today().isoformat()
     st["seen_refs"] = sorted(seen)[-50000:]
