@@ -1,1 +1,13 @@
-[]
+[
+ {
+  "amount": 63380.0,
+  "company": "Mediphage Bioceuticals, Inc.",
+  "detail": "As part of the international consortium project “UK Biomanufacturing - 10143578 - NPmsDNA2024 - Development of in vivo targeted non-viral gene therapies”, this project's objective is to use Chromatin Bio's bioinformatics platform to design novel gene regulatory elements, improving gene expression in Mediphage therapeutic constructs for Stargardt disease, while reducing sequence complexity and increasing manufacturing yields. Once generated, these constructs will be complexed with Entos proprietary ocular nanocarrier for in vivo evaluation by NRC and Entos. The best performing candidates will then be manufactured as msDNA drug substances for further therapeutic development.",
+  "jurisdiction": "ON",
+  "program": "Industrial Research Assistance Program – Contributions to Firms",
+  "province": "ON",
+  "raw_ref": "gc:Mediphage Bioceuticals, Inc.:2027-01-01",
+  "signal_date": "2027-01-01",
+  "source_url": "https://search.open.canada.ca/grants/?search_text=Mediphage%20Bioceuticals,%20Inc."
+ }
+]
