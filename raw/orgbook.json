@@ -1,1 +1,11 @@
-[]
+[
+ {
+  "company": "GRID SOFTWARE",
+  "hydrogen": false,
+  "jurisdiction": "BC",
+  "matched_token": "grid",
+  "raw_ref": "orgbook:FM1114475",
+  "registered": "2026-07-27",
+  "source_url": "https://orgbook.gov.bc.ca/entity/FM1114475"
+ }
+]
