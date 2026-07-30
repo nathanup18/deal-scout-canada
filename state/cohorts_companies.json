@@ -583,12 +583,6 @@
   "Tickit Health",
   "Tochtech Technologies Ltd"
  ],
- "https://www.velocityincubator.com/companies": [
-  "Instruments",
-  "View company Hardware Biotech Adaptis",
-  "View company Software HR Tech FluidAI",
-  "View company Software Quantum AutoCate"
- ],
  "https://www.evol.ca/blogue/": [
   "La Pourvoirie du Lac Saint-Pierre",
   "Ôtentik & Fière",
@@ -617,6 +611,7 @@
   "Edgecom Energy",
   "Electrovaya",
   "Event Mobi",
+  "Geosapiens",
   "Green Graphite",
   "Hydrostor",
   "Influicity",
@@ -637,5 +632,11 @@
   "Verto Health",
   "Vivid Machines",
   "VoPay"
+ ],
+ "https://www.velocityincubator.com/companies": [
+  "Instruments",
+  "View company Hardware Biotech Adaptis",
+  "View company Software HR Tech FluidAI",
+  "View company Software Quantum AutoCate"
  ]
 }
